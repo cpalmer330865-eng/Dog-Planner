@@ -5,33 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dog Life Cost Planner (Beta)</title>
   <meta name="description" content="Plan the lifetime costs of your dog — monthly cashflow, year-by-year journey, and lifetime total." />
+  <!-- Visual polish: Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #fafafa; color: #111; }
-    .wrap { max-width: 880px; margin: 0 auto; padding: 24px; }
-    header { padding: 16px 0; }
-    h1 { margin: 0 0 8px; }
-    .card { background: #fff; border: 1px solid #eaeaea; border-radius: 12px; padding: 16px; margin: 12px 0; }
-    label { display: block; margin: 8px 0 4px; font-weight: 600; }
-    select, button, a.button { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; display: inline-block; text-align: center; }
-    button { cursor: pointer; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .stat { background: #f6f6f6; border: 1px solid #eee; border-radius: 10px; padding: 12px; text-align: center; }
-    .big { font-size: 20px; font-weight: 700; }
-    .muted { color: #666; }
-    canvas { width: 100%; height: 280px; }
-    .aff-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
-    .aff { background:#f9f9ff; border:1px dashed #cfd3ff; border-radius:10px; padding:12px; text-align:center; }
-    .aff a { display:block; margin-top:6px; }
-    @media (max-width: 720px) { .grid, .stats, .aff-grid { grid-template-columns: 1fr; } }
+    :root{
+      --bg:#f7f7fb; --text:#111; --muted:#666; --card:#fff; --line:#e9e9f2;
+      --brand:#4f46e5; --brand-2:#7c3aed;
+    }
+    *{box-sizing:border-box}
+    body{font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    .wrap{max-width:920px;margin:0 auto;padding:24px}
+    header{padding:18px 0;margin-bottom:8px}
+    h1{margin:0 0 8px}
+    .hero{
+      background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);
+      color:#fff;border-radius:14px;padding:18px 16px;margin:12px 0;
+      box-shadow:0 8px 24px rgba(79,70,229,.25)
+    }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 6px 16px rgba(16,24,40,.06)}
+    label{display:block;margin:8px 0 6px;font-weight:600}
+    select,button,a.button{width:100%;padding:12px 12px;border:1px solid #ddd;border-radius:10px;background:#fff}
+    button{cursor:pointer;background:var(--brand);color:#fff;border:0;font-weight:600}
+    button:hover{filter:brightness(1.05)}
+    a.button{background:#fff;text-decoration:none;text-align:center}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .stat{background:#fbfbff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+    .big{font-size:22px;font-weight:700}
+    .muted{color:var(--muted)}
+    canvas{width:100%;height:300px}
+    .aff-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+    .aff{background:#fff;border:1px dashed #cfd3ff;border-radius:12px;padding:12px;text-align:center}
+    .aff a{display:block;margin-top:8px;background:#eef2ff;border:0}
+    .aff a:hover{filter:brightness(1.05)}
+    @media (max-width:760px){.grid,.stats,.aff-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Dog Life Cost Planner <span class="muted">/ Beta</span></h1>
-    <p>Plan every stage of your dog’s journey — month by month, year by year.</p>
+    <div class="hero">
+      <h1>Dog Life Cost Planner <span class="muted" style="color:#eaeaff">/ Beta</span></h1>
+      <p style="margin:6px 0 0">Plan every stage of your dog’s journey — month by month, year by year.</p>
+    </div>
   </header>
 
   <div class="card">
@@ -86,20 +102,16 @@
     <p id="emote" style="margin-top:8px"></p>
 
     <p class="muted" id="disclosure">
-      Some links are affiliate links. If you buy through them, we may earn a commission at no extra cost to you.
+      Some links may be affiliate links. If you buy through them, we may earn a commission at no extra cost to you.
     </p>
     <div class="aff-grid">
       <div class="aff">
         <div>Compare dog insurance for your breed</div>
-        <a id="insLink" class="button" href="#" rel="sponsored nofollow">Get insurance quotes →</a>
+        <a id="insLink" class="button" href="#" target="_blank" rel="sponsored nofollow">Get insurance quotes →</a>
       </div>
       <div class="aff">
         <div>Premium food picks for your dog</div>
-        <a id="foodLink" class="button" href="#" rel="sponsored nofollow">Premium food picks →</a>
-      </div>
-      <div class="aff">
-        <div>Find grooming near you</div>
-        <a id="groomLink" class="button" href="#" rel="sponsored nofollow">Find grooming →</a>
+        <a id="foodLink" class="button" href="#" target="_blank" rel="sponsored nofollow">Premium food picks →</a>
       </div>
     </div>
 
@@ -118,8 +130,11 @@
 
 <!-- jsPDF for client-side PDF generation -->
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<!-- Chart.js for nicer charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
 <script>
-// ====== Assumptions (editable) ======
+// ====== Assumptions ======
 const BREED_TABLE = {
   "German Shepherd":   { years:14, baseFood:1000, premFood:1200, routineVet:800, seniorExtra:1200, groom:300, trainY1:1000, suppliesY1:400, supplies:200, purchaseY1:2000, insureStd:650, insurePrem:900 },
   "Labrador Retriever":{ years:13, baseFood:950,  premFood:1100, routineVet:700, seniorExtra:900,  groom:280, trainY1:800,  suppliesY1:350, supplies:200, purchaseY1:1500, insureStd:600, insurePrem:850 },
@@ -143,7 +158,7 @@ function model(breed, tier, insurance, region){
   for(let y=1; y<=years; y++){
     const y1 = (y===1);
     let vet = routineVet;
-    if(y>=Math.max(10, years-4)) vet += p.seniorExtra;  // senior window
+    if(y>=Math.max(10, years-4)) vet += p.seniorExtra;
     const purchase = y1 ? p.purchaseY1 : 0;
     const training = y1 ? p.trainY1 : 0;
     const supplies = (y1 ? p.suppliesY1 : 0) + p.supplies;
@@ -156,37 +171,46 @@ function model(breed, tier, insurance, region){
 const $ = sel => document.querySelector(sel);
 const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regionEl = $('#region');
 
+// ----- Nicer chart with Chart.js -----
+let chart;
 function drawChart(totals){
-  const c = $('#chart');
-  const ctx = c.getContext('2d');
-  const W = c.width = c.clientWidth * devicePixelRatio;
-  const H = c.height = c.clientHeight * devicePixelRatio;
-  ctx.clearRect(0,0,W,H);
-  const max = Math.max(...totals), min = Math.min(...totals);
-  const pad = 20 * devicePixelRatio;
-  const X = i => pad + (W-2*pad) * (i/(totals.length-1 || 1));
-  const Y = v => H - pad - (H-2*pad) * ((v - min) / (max - min || 1));
-  ctx.lineWidth = 2 * devicePixelRatio;
-  ctx.beginPath();
-  totals.forEach((v,i)=>{ const x=X(i), y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
-  ctx.stroke();
+  const ctx = document.getElementById('chart').getContext('2d');
+  const gradient = ctx.createLinearGradient(0,0,0,300);
+  gradient.addColorStop(0, 'rgba(79,70,229,0.25)');
+  gradient.addColorStop(1, 'rgba(79,70,229,0.02)');
+
+  const data = {
+    labels: totals.map((_,i)=>`Year ${i+1}`),
+    datasets: [{
+      label: 'Annual cost',
+      data: totals,
+      fill: true,
+      backgroundColor: gradient,
+      borderColor: '#4f46e5',
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      tension: 0.35
+    }]
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display:false } },
+      y: { ticks: { callback:(v)=>'£'+v }, grid: { color:'#eee' } }
+    },
+    plugins: { legend: { display:false }, tooltip: { callbacks: {
+      label:(ctx)=> ' £' + Math.round(ctx.parsed.y).toLocaleString()
+    }}}
+  };
+
+  if(chart){ chart.data = data; chart.options = options; chart.update(); }
+  else { chart = new Chart(ctx, { type: 'line', data, options }); }
 }
 
-function updateAffiliateLinks(){
-  const utm = new URLSearchParams({
-    utm_source: "dogplanner", utm_medium: "affiliate",
-    utm_campaign: breedEl.value.replace(/\s+/g,'_') + "_" + tierEl.value
-  }).toString();
-
-  // Replace with your real affiliate links later
-  const INSURANCE_URL = "https://example-insurance-aff.com/compare?";
-  const FOOD_URL      = "https://example-food-aff.com/premium?";
-  const GROOM_URL     = "https://example-groom-aff.com/find?";
-
-  $('#insLink').href  = INSURANCE_URL + utm;
-  $('#foodLink').href = FOOD_URL + utm;
-  $('#groomLink').href= GROOM_URL + utm;
-}
+// no-op for now so existing calls don't break
+function updateAffiliateLinks(){ return; }
 
 function recalc(){
   const rows = model(breedEl.value, tierEl.value, insEl.value, regionEl.value);
@@ -208,10 +232,9 @@ function recalc(){
 }
 
 document.getElementById('calc').addEventListener('click', recalc);
-// Auto-run once
 recalc();
 
-// ====== PDF generation ======
+// ====== PDF generation (improved chart included) ======
 document.getElementById('pdfBtn').addEventListener('click', async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -224,10 +247,12 @@ document.getElementById('pdfBtn').addEventListener('click', async () => {
   const lifetime= document.getElementById('lifetime').textContent;
   const year1   = document.getElementById('year1').textContent;
 
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
-  doc.text('Dog Life Cost Planner — Personalised Summary', 40, 50);
+  doc.setFont('helvetica','bold'); doc.setFontSize(20);
+  doc.text('Dog Life Cost Planner — Personalised Summary', 40, 44);
+  doc.setDrawColor(230); doc.line(40, 54, 555, 54);
 
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
+  doc.setFont('helvetica','normal'); doc.setFontSize(12);
+  let y = 76;
   const lines = [
     `Breed: ${breed}`,
     `Lifestyle: ${tier}`,
@@ -242,20 +267,19 @@ document.getElementById('pdfBtn').addEventListener('click', async () => {
     '— Senior years include higher vet care.',
     '— Planning monthly helps avoid surprises.'
   ];
-  let y = 80;
   lines.forEach(l => { doc.text(l, 40, y); y += 18; });
 
   const canvas = document.getElementById('chart');
   if (canvas && canvas.toDataURL) {
     const imgData = canvas.toDataURL('image/png', 1.0);
-    doc.addImage(imgData, 'PNG', 40, y + 10, 515, 240);
-    y += 270;
+    doc.addImage(imgData, 'PNG', 40, y + 10, 515, 260);
+    y += 290;
   }
 
   doc.setFontSize(10); doc.setTextColor(120);
   doc.text('Some links may be affiliate links. We may earn a commission at no extra cost to you.', 40, 810);
 
-  doc.save(`DogPlanner_${breed.replace(/\s+/g,'')}.pdf`);
+  doc.save(`DogPlanner_${breed.replace(/\\s+/g,'')}.pdf`);
 });
 </script>
 </body>
