@@ -127,4 +127,233 @@
   </div>
 
   <div class="card">
-    <h4>Notes & next steps</
+    <h4>Notes & next steps</h4>
+    <ul>
+      <li>We show first-year setup spikes, steady middle years, and higher senior-year vet costs.</li>
+      <li>Food link adapts by breed size + lifestyle; insurance coming soon.</li>
+      <li>Maddie added 🐾</li>
+    </ul>
+  </div>
+</div>
+
+<!-- jsPDF for client-side PDF generation -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+// ====== Assumptions ======
+const BREED_TABLE = {
+  "German Shepherd":   { years:14, baseFood:1000, premFood:1200, routineVet:800, seniorExtra:1200, groom:300, trainY1:1000, suppliesY1:400, supplies:200, purchaseY1:2000, insureStd:650, insurePrem:900 },
+  "Labrador Retriever":{ years:13, baseFood:950,  premFood:1100, routineVet:700, seniorExtra:900,  groom:280, trainY1:800,  suppliesY1:350, supplies:200, purchaseY1:1500, insureStd:600, insurePrem:850 },
+  "Golden Retriever":  { years:12, baseFood:950,  premFood:1150, routineVet:800, seniorExtra:1000, groom:320, trainY1:900,  suppliesY1:350, supplies:200, purchaseY1:1800, insureStd:650, insurePrem:900 },
+  "French Bulldog":    { years:11, baseFood:650,  premFood:750,  routineVet:900, seniorExtra:1000, groom:250, trainY1:400,  suppliesY1:300, supplies:150, purchaseY1:2000, insureStd:800, insurePrem:1000 },
+  "Dachshund":         { years:14, baseFood:500,  premFood:600,  routineVet:700, seniorExtra:800,  groom:220, trainY1:500,  suppliesY1:300, supplies:150, purchaseY1:1200, insureStd:500, insurePrem:700 },
+  "Cockapoo":          { years:13, baseFood:700,  premFood:850,  routineVet:700, seniorExtra:900,  groom:420, trainY1:600,  suppliesY1:320, supplies:180, purchaseY1:1600, insureStd:550, insurePrem:750 }
+};
+
+function fmt(n){ return "£" + Math.round(n).toLocaleString(); }
+
+function model(breed, tier, insurance, region){
+  const p = BREED_TABLE[breed];
+  const years = p.years;
+  const food = (tier === "Premium" ? p.premFood : p.baseFood) * (region.includes("London") ? 1.08 : 1.0);
+  const insure = insurance === "Yes" ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0) : 0;
+  const groom = p.groom * (tier==="Premium" ? 1.1 : 1.0);
+  const routineVet = p.routineVet * (region.includes("London") ? 1.10 : 1.0);
+
+  let rows = [];
+  for(let y=1; y<=years; y++){
+    const y1 = (y===1);
+    let vet = routineVet;
+    if(y>=Math.max(10, years-4)) vet += p.seniorExtra;  // senior window
+    const purchase = y1 ? p.purchaseY1 : 0;
+    const training = y1 ? p.trainY1 : 0;
+    const supplies = (y1 ? p.suppliesY1 : 0) + p.supplies;
+    const total = purchase + training + supplies + food + insure + vet + groom;
+    rows.push({year:y, total});
+  }
+  return rows;
+}
+
+const $ = sel => document.querySelector(sel);
+const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regionEl = $('#region');
+
+// ===== Dynamic Amazon search link (breed-size + tier) =====
+const BREED_SIZE = {
+  "German Shepherd":"large breed",
+  "Labrador Retriever":"large breed",
+  "Golden Retriever":"large breed",
+  "French Bulldog":"small breed",
+  "Dachshund":"small breed",
+  "Cockapoo":"medium breed"
+};
+
+// ✅ Your Amazon Associates tracking ID
+const AMAZON_TAG = "cp33086503-21";
+const AMAZON_FALLBACK = "https://amzn.to/4oZAwmh";
+
+function amazonFoodSearchUrl(breed, tier){
+  const size = BREED_SIZE[breed] || "dog";
+  const premium = (tier === "Premium") ? "premium " : "";
+  const bagHint = size.includes("large") ? "12kg" : (size.includes("small") ? "2kg" : "7kg");
+  const query = `${premium}${size} dry dog food ${bagHint}`;
+  if (!AMAZON_TAG) return AMAZON_FALLBACK;
+  return `https://www.amazon.co.uk/s?k=${encodeURIComponent(query)}&i=pets&tag=${AMAZON_TAG}`;
+}
+
+function updateFoodLink(){
+  const breed = breedEl.value;
+  const tier  = tierEl.value;
+  $('#foodLink').href = amazonFoodSearchUrl(breed, tier);
+}
+
+// ---- Assumption note ----
+function updateAssumptionNote(breed, tier){
+  const p = BREED_TABLE[breed];
+  const annualFood = (tier === "Premium") ? p.premFood : p.baseFood;
+  const monthlyFood = Math.round(annualFood / 12);
+  document.getElementById('assumptionNote').textContent =
+    `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} for ${breed}).`;
+}
+
+// -------- Simple chart with axes & ticks --------
+function drawChart(totals){
+  const c = document.getElementById('chart');
+  const ctx = c.getContext('2d');
+  // crisp canvas sizing
+  const cssW = c.clientWidth, cssH = c.clientHeight;
+  const scale = window.devicePixelRatio || 1;
+  c.width = Math.round(cssW * scale);
+  c.height = Math.round(cssH * scale);
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.scale(scale, scale);
+
+  const padL = 48, padB = 34, padT = 16, padR = 12;
+  const max = Math.max(...totals);
+  const min = 0;
+  const plotW = cssW - padL - padR;
+  const plotH = cssH - padT - padB;
+  const X = i => padL + (plotW) * (i/(totals.length-1 || 1));
+  const Y = v => (padT + plotH) - (plotH) * ((v - min) / (max - min || 1));
+
+  // axes
+  ctx.strokeStyle = "#444";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  // labels + grid
+  ctx.fillStyle = "#444";
+  ctx.font = "12px Inter, system-ui, sans-serif";
+  const steps = 5;
+  for(let i=0;i<=steps;i++){
+    const val = min + (max-min) * (i/steps);
+    const y = Y(val);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText("£"+Math.round(val/100)*100, padL - 6, y);
+    ctx.strokeStyle="#e9e9f2";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(padL + plotW, y);
+    ctx.stroke();
+  }
+
+  // x labels (every other year)
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  totals.forEach((_,i)=>{
+    const x=X(i), y=padT+plotH;
+    if(i%2===0 || i===totals.length-1){
+      ctx.fillText("Yr "+(i+1), x, y+6);
+    }
+  });
+
+  // line
+  ctx.strokeStyle="#4f46e5";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  totals.forEach((v,i)=>{ const x=X(i), y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.stroke();
+}
+
+function recalc(){
+  const rows = model(breedEl.value, tierEl.value, insEl.value, regionEl.value);
+  const totals = rows.map(r=>r.total);
+  const lifetime = totals.reduce((a,b)=>a+b,0);
+  const monthly = lifetime / (rows.length * 12);
+  const year1 = totals[0];
+
+  $('#monthly').textContent  = fmt(monthly);
+  $('#lifetime').textContent = fmt(lifetime);
+  $('#year1').textContent    = fmt(year1);
+
+  drawChart(totals);
+
+  $('#emote').textContent = (rows.length>=12)
+    ? "Expect a larger spike in year one (setup & training) and higher costs in senior years (vet care). Planning monthly helps avoid surprises."
+    : "Spending peaks in year one and rises again in later years. Planning monthly helps avoid surprises.";
+
+  updateFoodLink();
+  updateAssumptionNote(breedEl.value, tierEl.value);
+}
+
+document.getElementById('calc').addEventListener('click', recalc);
+window.addEventListener('resize', ()=>recalc());
+recalc();
+updateFoodLink();
+updateAssumptionNote(breedEl.value, tierEl.value);
+
+// ====== PDF generation ======
+document.getElementById('pdfBtn').addEventListener('click', async () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+  const breed   = breedEl.value;
+  const tier    = tierEl.value;
+  const region  = regionEl.value;
+  const insure  = insEl.value;
+  const monthly = document.getElementById('monthly').textContent;
+  const lifetime= document.getElementById('lifetime').textContent;
+  const year1   = document.getElementById('year1').textContent;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(20);
+  doc.text('Dog Life Cost Planner — Personalised Summary', 40, 44);
+  doc.setDrawColor(230); doc.line(40, 54, 555, 54);
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(12);
+  let y = 76;
+  const lines = [
+    `Breed: ${breed}`,
+    `Lifestyle: ${tier}`,
+    `Region: ${region}`,
+    `Insurance: ${insure}`,
+    `Monthly average: ${monthly}`,
+    `Lifetime total: ${lifetime}`,
+    `Year-1 spike: ${year1}`,
+    '',
+    'Notes:',
+    '— Year 1 includes setup & training.',
+    '— Senior years include higher vet care.',
+    '— Planning monthly helps avoid surprises.'
+  ];
+  lines.forEach(l => { doc.text(l, 40, y); y += 18; });
+
+  const canvas = document.getElementById('chart');
+  if (canvas && canvas.toDataURL) {
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    doc.addImage(imgData, 'PNG', 40, y + 10, 515, 260);
+  }
+
+  doc.setFontSize(10); doc.setTextColor(120);
+  doc.text('Some links may be affiliate links. We may earn a commission at no extra cost to you.', 40, 810);
+
+  doc.save(`DogPlanner_${breed.replace(/\s+/g,'')}.pdf`);
+});
+</script>
+</body>
+</html>
