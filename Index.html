@@ -23,7 +23,8 @@
     }
     .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 6px 16px rgba(16,24,40,.06)}
     label{display:block;margin:8px 0 6px;font-weight:600}
-    select,button,a.button{width:100%;padding:12px 12px;border:1px solid #ddd;border-radius:10px;background:#fff}
+    select,input,button,a.button{width:100%;padding:12px 12px;border:1px solid #ddd;border-radius:10px;background:#fff}
+    input[type="number"]{appearance:textfield}
     button{cursor:pointer;background:var(--brand);color:#fff;border:0;font-weight:600}
     button:hover{filter:brightness(1.05)}
     a.button{background:#fff;text-decoration:none;text-align:center}
@@ -85,6 +86,18 @@
           <option>London/Urban</option>
         </select>
       </div>
+
+      <!-- NEW: Current Age -->
+      <div>
+        <label>Current Age</label>
+        <select id="currentAge"></select>
+      </div>
+
+      <!-- NEW: Weight -->
+      <div>
+        <label>Weight (kg)</label>
+        <input type="number" id="weight" min="2" max="90" step="0.1" placeholder="e.g. 25">
+      </div>
     </div>
     <p class="muted" style="margin:8px 0 0">
       Broad beta model. We’ll refine with UK sources (PDSA, RSPCA, PFMA, insurers) and real owner inputs.
@@ -97,7 +110,7 @@
     <div class="stats">
       <div class="stat"><div class="muted">Monthly Avg</div><div id="monthly" class="big">–</div></div>
       <div class="stat"><div class="muted">Lifetime Total</div><div id="lifetime" class="big">–</div></div>
-      <div class="stat"><div class="muted">Year-1 Spike</div><div id="year1" class="big">–</div></div>
+      <div class="stat"><div class="muted">Year-1 (next 12m)</div><div id="year1" class="big">–</div></div>
     </div>
     <canvas id="chart" aria-label="Yearly cashflow" role="img"></canvas>
     <p id="emote" style="margin-top:8px"></p>
@@ -113,6 +126,7 @@
         <li><a href="https://www.battersea.org.uk/dogs" target="_blank" rel="noopener">Battersea Dogs & Cats Home</a></li>
         <li><a href="https://www.pets4homes.co.uk/adoption/dogs/near-me/united-kingdom/england/north-somerset/weston-super-mare/" target="_blank" rel="noopener">Pets4Homes — Weston-super-Mare</a></li>
         <li><a href="https://www.rspca.org.uk/local/north-somerset-branch/findapet" target="_blank" rel="noopener">RSPCA — North Somerset</a></li>
+      </ul>
       <p class="muted" style="margin:0">Change a dog's life.</p>
     </div>
 
@@ -173,7 +187,7 @@
     <h4>Notes & next steps</h4>
     <ul>
       <li>We show first-year setup spikes, steady middle years, and higher senior-year vet costs.</li>
-      <li>Food link adapts by breed size + lifestyle; insurance coming soon.</li>
+      <li>Food link adapts by breed size or entered weight + lifestyle; insurance coming soon.</li>
       <li>Maddie featured 🐾, expanded breed list, rescue links above affiliates.</li>
     </ul>
   </div>
@@ -215,30 +229,74 @@ const $ = sel => document.querySelector(sel);
 
 function fmt(n){ return "£" + Math.round(n).toLocaleString(); }
 
-function model(breed, tier, insurance, region){
+// Weight → annual food (£/yr) for Standard; Premium adds ~15%
+function annualFoodFromWeight(weightKg, tier){
+  const w = Number(weightKg);
+  if(!w || w <= 0) return null;
+  let monthly;
+  if (w < 10) monthly = 40;
+  else if (w < 25) monthly = 60;
+  else if (w < 40) monthly = 80;
+  else monthly = 100;
+  if (tier === "Premium") monthly *= 1.15;
+  return monthly * 12;
+}
+
+// Weight → size label for Amazon search
+function sizeFromWeight(weightKg){
+  const w = Number(weightKg);
+  if(!w || w <= 0) return null;
+  if (w < 10) return "small";
+  if (w < 25) return "medium";
+  if (w < 40) return "large";
+  return "large"; // treat >40kg as large for query
+}
+
+function model(breed, tier, insurance, region, currentAgeYears, weightKg){
   const p = DOGS[breed];
   const years = p.years;
-  const food = (tier === "Premium" ? p.premFood : p.baseFood) * (region.includes("London") ? 1.08 : 1.0);
-  const insure = insurance === "Yes" ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0) : 0;
+  const startAge = Math.max(0, Math.min(years, Number(currentAgeYears)||0)); // clamp
+  const remainingYears = Math.max(0, years - startAge);
+
+  // Food: weight override if provided, else breed defaults
+  const weightFood = annualFoodFromWeight(weightKg, tier);
+  const baseFoodAnnual = weightFood ?? (tier === "Premium" ? p.premFood : p.baseFood);
+
+  const regionalFood = baseFoodAnnual * (region.includes("London") ? 1.08 : 1.0);
+  const insure = insurance === "Yes"
+      ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0)
+      : 0;
   const groom = p.groom * (tier==="Premium" ? 1.1 : 1.0);
   const routineVet = p.routineVet * (region.includes("London") ? 1.10 : 1.0);
 
   const rows = [];
-  for(let y=1; y<=years; y++){
-    const y1 = (y===1);
+  // Loop actual dog age from next birthday onward (remaining horizon)
+  for(let i=1; i<=remainingYears; i++){
+    const ageThisYear = startAge + i; // 1..remaining mapped to real age
+    const isFirstYearOutput = (i===1);
+
+    // Vet costs with senior bump near the end
     let vet = routineVet;
-    if(y>=Math.max(10, years-4)) vet += p.seniorExtra; // senior window
-    const purchase = y1 ? p.purchaseY1 : 0;
-    const training = y1 ? p.trainY1 : 0;
-    const supplies = (y1 ? p.suppliesY1 : 0) + p.supplies;
-    const total = purchase + training + supplies + food + insure + vet + groom;
-    rows.push({year:y, total});
+    if(ageThisYear >= Math.max(10, years-4)) vet += p.seniorExtra;
+
+    // One-off costs only if starting from puppy (age 0) and it's the first output year
+    const purchase = (startAge===0 && isFirstYearOutput) ? p.purchaseY1 : 0;
+    const training = (startAge===0 && isFirstYearOutput) ? p.trainY1 : 0;
+
+    // Supplies: Y1 spike only if starting from puppy; plus annual supplies each year
+    const supplies = ((startAge===0 && isFirstYearOutput) ? p.suppliesY1 : 0) + p.supplies;
+
+    // Annual food already adjusted
+    const total = purchase + training + supplies + regionalFood + insure + vet + groom;
+    rows.push({year:i, age:ageThisYear, total});
   }
   return rows;
 }
 
-// Populate breed <select> from database
+// Populate controls
 const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regionEl = $('#region');
+const ageEl = $('#currentAge'), weightEl = $('#weight');
+
 (function populateBreeds(){
   const breeds = Object.keys(DOGS);
   breeds.forEach(name=>{
@@ -246,17 +304,27 @@ const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regio
     opt.textContent = name;
     breedEl.appendChild(opt);
   });
-  // Preselect German Shepherd if present
   const idx = breeds.indexOf("German Shepherd");
   if(idx>=0) breedEl.selectedIndex = idx;
 })();
 
-// ===== Dynamic Amazon search link (uses size) =====
+(function populateAges(){
+  for(let y=0; y<=15; y++){
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = y===0 ? 'Puppy (0 years)' : `${y} year${y>1?'s':''}`;
+    ageEl.appendChild(opt);
+  }
+  ageEl.value = "0";
+})();
+
+// ===== Dynamic Amazon food link (uses weight size if present, else breed size) =====
 const AMAZON_TAG = "cp33086503-21";
 const AMAZON_FALLBACK = "https://amzn.to/4oZAwmh";
 
-function amazonFoodSearchUrl(breed, tier){
-  const size = DOGS[breed]?.size || "medium";
+function amazonFoodSearchUrl(breed, tier, weightKg){
+  const weightSize = sizeFromWeight(weightKg);
+  const size = weightSize || DOGS[breed]?.size || "medium";
   const sizePhrase = size==="large" ? "large breed" : size==="small" ? "small breed" : "medium breed";
   const premium = (tier === "Premium") ? "premium " : "";
   const bagHint = size==="large" ? "12kg" : (size==="small" ? "2kg" : "7kg");
@@ -266,16 +334,19 @@ function amazonFoodSearchUrl(breed, tier){
 }
 
 function updateFoodLink(){
-  $('#foodLink').href = amazonFoodSearchUrl(breedEl.value, tierEl.value);
+  const href = amazonFoodSearchUrl(breedEl.value, tierEl.value, weightEl.value);
+  $('#foodLink').href = href;
 }
 
 // ---- Assumption note ----
-function updateAssumptionNote(breed, tier){
+function updateAssumptionNote(breed, tier, weightKg){
   const p = DOGS[breed];
-  const annualFood = (tier === "Premium") ? p.premFood : p.baseFood;
+  const weightFood = annualFoodFromWeight(weightKg, tier);
+  const annualFood = weightFood ?? (tier === "Premium" ? p.premFood : p.baseFood);
   const monthlyFood = Math.round(annualFood / 12);
+  const basis = weightFood ? `${weightKg}kg` : breed;
   document.getElementById('assumptionNote').textContent =
-    `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} for ${breed}).`;
+    `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} — based on ${basis}).`;
 }
 
 // -------- Chart --------
@@ -291,7 +362,7 @@ function drawChart(totals){
   ctx.scale(scale, scale);
 
   const padL = 48, padB = 34, padT = 16, padR = 12;
-  const max = Math.max(...totals);
+  const max = Math.max(...totals, 1);
   const min = 0;
   const plotW = cssW - padL - padR;
   const plotH = cssH - padT - padB;
@@ -317,9 +388,9 @@ function drawChart(totals){
     ctx.strokeStyle="#e9e9f2"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
   }
-  // x labels
+  // x labels = Remaining Yr N
   ctx.textAlign = "center"; ctx.textBaseline = "top";
-  totals.forEach((_,i)=>{ if(i%2===0 || i===totals.length-1){ ctx.fillText("Yr "+(i+1), X(i), padT+plotH+6); } });
+  totals.forEach((_,i)=>{ if(i%2===0 || i===totals.length-1){ ctx.fillText("Rem Yr "+(i+1), X(i), padT+plotH+6); } });
 
   // line
   ctx.strokeStyle="#4f46e5"; ctx.lineWidth=2;
@@ -329,40 +400,47 @@ function drawChart(totals){
 }
 
 function recalc(){
-  const rows = model(breedEl.value, tierEl.value, insEl.value, regionEl.value);
+  const currentAge = Number(ageEl.value||0);
+  const weightKg = Number(weightEl.value||0);
+
+  const rows = model(breedEl.value, tierEl.value, insEl.value, regionEl.value, currentAge, weightKg);
   const totals = rows.map(r=>r.total);
   const lifetime = totals.reduce((a,b)=>a+b,0);
-  const monthly = lifetime / (rows.length * 12);
-  const year1 = totals[0];
+  const monthly = rows.length > 0 ? lifetime / (rows.length * 12) : 0;
+  const year1 = totals[0] ?? 0;
 
   $('#monthly').textContent  = fmt(monthly);
   $('#lifetime').textContent = fmt(lifetime);
-  $('#year1').textContent    = fmt(year1);
+  $('#year1').textContent    = rows.length ? fmt(year1) : "–";
 
   drawChart(totals);
 
   $('#emote').textContent =
-    "Expect a larger spike in year one (setup & training) and higher costs in senior years (vet care). Planning monthly helps avoid surprises.";
+    rows.length
+      ? "Spending pattern reflects your dog's current age and weight. Expect higher costs in senior years (vet care)."
+      : "Looks like your dog may already be at or beyond the typical lifespan for this breed.";
 
   updateFoodLink();
-  updateAssumptionNote(breedEl.value, tierEl.value);
+  updateAssumptionNote(breedEl.value, tierEl.value, weightEl.value);
 }
 
 document.getElementById('calc').addEventListener('click', recalc);
 window.addEventListener('resize', ()=>recalc());
 recalc();
 updateFoodLink();
-updateAssumptionNote(breedEl.value, tierEl.value);
+updateAssumptionNote(breedEl.value, tierEl.value, weightEl.value);
 
 // ====== PDF generation ======
 document.getElementById('pdfBtn').addEventListener('click', async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-  const breed   = breedEl.value;
-  const tier    = tierEl.value;
-  const region  = regionEl.value;
-  const insure  = insEl.value;
+  const breed   = document.getElementById('breed').value;
+  const tier    = document.getElementById('tier').value;
+  const region  = document.getElementById('region').value;
+  const insure  = document.getElementById('insurance').value;
+  const age     = document.getElementById('currentAge').value;
+  const weight  = document.getElementById('weight').value || "—";
   const monthly = document.getElementById('monthly').textContent;
   const lifetime= document.getElementById('lifetime').textContent;
   const year1   = document.getElementById('year1').textContent;
@@ -378,14 +456,16 @@ document.getElementById('pdfBtn').addEventListener('click', async () => {
     `Lifestyle: ${tier}`,
     `Region: ${region}`,
     `Insurance: ${insure}`,
+    `Current age: ${age} year(s)`,
+    `Weight: ${weight} kg`,
     `Monthly average: ${monthly}`,
-    `Lifetime total: ${lifetime}`,
-    `Year-1 spike: ${year1}`,
+    `Remaining lifetime total: ${lifetime}`,
+    `Next-12-months estimate: ${year1}`,
     '',
     'Notes:',
-    '— Year 1 includes setup & training.',
+    '— Year 1 shows the next 12 months from current age.',
     '— Senior years include higher vet care.',
-    '— Planning monthly helps avoid surprises.'
+    '— Food cost adjusts by weight if provided.'
   ];
   lines.forEach(l => { doc.text(l, 40, y); y += 18; });
 
