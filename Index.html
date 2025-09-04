@@ -51,11 +51,11 @@
     </div>
   </header>
 
-  <!-- One Maddie image card -->
+  <!-- Maddie image card -->
   <div class="card" style="padding:0; overflow:hidden; border-radius:14px; text-align:center">
     <img src="./IMG_0742.jpeg" alt="Maddie the dog"
          style="width:100%; height:auto; display:block; aspect-ratio:16/9; object-fit:cover;">
-    <div style="padding:10px" class="muted">Maddie 🐾 Chief Cuddle Officer</div>
+    <div style="padding:10px" class="muted">Maddie — CEO • Best dog ever • Fastest dog in the South West</div>
   </div>
 
   <div class="card">
@@ -127,35 +127,35 @@
       </div>
     </div>
 
-    <!-- NEW: Recommended extras (Amazon-tagged) -->
+    <!-- High-end extras (Amazon-tagged) -->
     <h4 style="margin:16px 0 6px">Recommended extras</h4>
     <div class="extras-grid">
       <div class="aff">
-        <div>Dog Beds</div>
+        <div>Luxury Orthopedic Beds</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=large+dog+bed&i=pets&tag=cp33086503-21">
-           Shop Dog Beds →
+           href="https://www.amazon.co.uk/s?k=luxury+orthopedic+dog+bed&i=pets&tag=cp33086503-21">
+           Shop Luxury Beds →
         </a>
       </div>
       <div class="aff">
-        <div>Dog Toys</div>
+        <div>Premium Outdoor Kennels</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=interactive+dog+toys&i=pets&tag=cp33086503-21">
-           Explore Toys →
+           href="https://www.amazon.co.uk/s?k=premium+outdoor+dog+kennel+weatherproof&i=pets&tag=cp33086503-21">
+           Explore Kennels →
         </a>
       </div>
       <div class="aff">
-        <div>Crates & Kennels</div>
+        <div>Top-End Automatic Feeders</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=dog+crate+large&i=pets&tag=cp33086503-21">
-           View Crates →
+           href="https://www.amazon.co.uk/s?k=automatic+dog+feeder+wifi+stainless+steel&i=pets&tag=cp33086503-21">
+           View Smart Feeders →
         </a>
       </div>
       <div class="aff">
-        <div>Leads & Collars</div>
+        <div>Premium Leads & Collars</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=dog+lead+strong&i=pets&tag=cp33086503-21">
-           Find Leads →
+           href="https://www.amazon.co.uk/s?k=leather+dog+lead+premium+i+pets&tag=cp33086503-21">
+           Find Premium Leads →
         </a>
       </div>
     </div>
@@ -163,7 +163,7 @@
     <button id="pdfBtn" style="margin-top:12px">Download personalised PDF</button>
   </div>
 
-  <!-- NEW: Rescue links (non-affiliate) -->
+  <!-- Rescue links (non-affiliate) -->
   <div class="card" style="background:#fdf6f6; border:1px solid #f5c2c2;">
     <h3 style="margin-top:0;">Thinking of adopting?</h3>
     <p class="muted">Every year thousands of dogs in the UK need a loving home.</p>
@@ -172,7 +172,7 @@
       <li><a href="https://www.dogsblog.com/" target="_blank" rel="noopener">DogsBlog.com — UK shelters</a></li>
       <li><a href="https://www.battersea.org.uk/dogs" target="_blank" rel="noopener">Battersea Dogs & Cats Home</a></li>
     </ul>
-    <p class="muted">Adoption saves lives 🐾</p>
+    <p class="muted">Change a dog's life.</p>
   </div>
 
   <div class="card">
@@ -180,7 +180,7 @@
     <ul>
       <li>We show first-year setup spikes, steady middle years, and higher senior-year vet costs.</li>
       <li>Food link adapts by breed size + lifestyle; insurance coming soon.</li>
-      <li>Maddie featured 🐾 + extras + rescue links added.</li>
+      <li>Maddie featured 🐾 + high-end extras + rescue links added.</li>
     </ul>
   </div>
 </div>
@@ -206,7 +206,7 @@ function model(breed, tier, insurance, region){
   const years = p.years;
   const food = (tier === "Premium" ? p.premFood : p.baseFood) * (region.includes("London") ? 1.08 : 1.0);
   const insure = insurance === "Yes" ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0) : 0;
-  const groom = p.groom * (tier==="Premium") ? 1.1 : 1.0;
+  const groom = p.groom * (tier==="Premium" ? 1.1 : 1.0);
   const routineVet = p.routineVet * (region.includes("London") ? 1.10 : 1.0);
 
   let rows = [];
@@ -223,7 +223,7 @@ function model(breed, tier, insurance, region){
   return rows;
 }
 
-const $ = sel => document.querySelector(sel);
+const $ = sel => document.querySelector(sel));
 const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regionEl = $('#region');
 
 // ===== Dynamic Amazon search link (breed-size + tier) =====
