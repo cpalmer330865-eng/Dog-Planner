@@ -37,7 +37,9 @@
     .aff{background:#fff;border:1px dashed #cfd3ff;border-radius:12px;padding:12px;text-align:center}
     .aff a{display:block;margin-top:8px;background:#eef2ff;border:0}
     .aff a:hover{filter:brightness(1.05)}
-    @media (max-width:760px){.grid,.stats,.aff-grid{grid-template-columns:1fr}}
+    .extras-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+    .extras-grid .aff{border-style:solid}
+    @media (max-width:760px){.grid,.stats,.aff-grid,.extras-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -111,6 +113,8 @@
     <p class="muted" id="disclosure">
       Some links are affiliate links. If you buy through them, we may earn a commission at no extra cost to you.
     </p>
+
+    <!-- Core affiliates -->
     <div class="aff-grid">
       <div class="aff">
         <div>Compare dog insurance for your breed</div>
@@ -123,7 +127,52 @@
       </div>
     </div>
 
+    <!-- NEW: Recommended extras (Amazon-tagged) -->
+    <h4 style="margin:16px 0 6px">Recommended extras</h4>
+    <div class="extras-grid">
+      <div class="aff">
+        <div>Dog Beds</div>
+        <a class="button" target="_blank" rel="sponsored nofollow"
+           href="https://www.amazon.co.uk/s?k=large+dog+bed&i=pets&tag=cp33086503-21">
+           Shop Dog Beds →
+        </a>
+      </div>
+      <div class="aff">
+        <div>Dog Toys</div>
+        <a class="button" target="_blank" rel="sponsored nofollow"
+           href="https://www.amazon.co.uk/s?k=interactive+dog+toys&i=pets&tag=cp33086503-21">
+           Explore Toys →
+        </a>
+      </div>
+      <div class="aff">
+        <div>Crates & Kennels</div>
+        <a class="button" target="_blank" rel="sponsored nofollow"
+           href="https://www.amazon.co.uk/s?k=dog+crate+large&i=pets&tag=cp33086503-21">
+           View Crates →
+        </a>
+      </div>
+      <div class="aff">
+        <div>Leads & Collars</div>
+        <a class="button" target="_blank" rel="sponsored nofollow"
+           href="https://www.amazon.co.uk/s?k=dog+lead+strong&i=pets&tag=cp33086503-21">
+           Find Leads →
+        </a>
+      </div>
+    </div>
+
     <button id="pdfBtn" style="margin-top:12px">Download personalised PDF</button>
+  </div>
+
+  <!-- NEW: Rescue links (non-affiliate) -->
+  <div class="card" style="background:#fdf6f6; border:1px solid #f5c2c2;">
+    <h3 style="margin-top:0;">Thinking of adopting?</h3>
+    <p class="muted">Every year thousands of dogs in the UK need a loving home.</p>
+    <ul>
+      <li><a href="https://www.rspca.org.uk/findapet" target="_blank" rel="noopener">RSPCA — Find a Pet</a></li>
+      <li><a href="https://www.dogsblog.com/" target="_blank" rel="noopener">DogsBlog.com — UK shelters</a></li>
+      <li><a href="https://www.battersea.org.uk/dogs" target="_blank" rel="noopener">Battersea Dogs & Cats Home</a></li>
+    </ul>
+    <p class="muted">Adoption saves lives 🐾</p>
   </div>
 
   <div class="card">
@@ -131,7 +180,7 @@
     <ul>
       <li>We show first-year setup spikes, steady middle years, and higher senior-year vet costs.</li>
       <li>Food link adapts by breed size + lifestyle; insurance coming soon.</li>
-      <li>Maddie added 🐾</li>
+      <li>Maddie featured 🐾 + extras + rescue links added.</li>
     </ul>
   </div>
 </div>
@@ -157,14 +206,14 @@ function model(breed, tier, insurance, region){
   const years = p.years;
   const food = (tier === "Premium" ? p.premFood : p.baseFood) * (region.includes("London") ? 1.08 : 1.0);
   const insure = insurance === "Yes" ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0) : 0;
-  const groom = p.groom * (tier==="Premium" ? 1.1 : 1.0);
+  const groom = p.groom * (tier==="Premium") ? 1.1 : 1.0;
   const routineVet = p.routineVet * (region.includes("London") ? 1.10 : 1.0);
 
   let rows = [];
   for(let y=1; y<=years; y++){
     const y1 = (y===1);
     let vet = routineVet;
-    if(y>=Math.max(10, years-4)) vet += p.seniorExtra;  // senior window
+    if(y>=Math.max(10, years-4)) vet += p.seniorExtra;
     const purchase = y1 ? p.purchaseY1 : 0;
     const training = y1 ? p.trainY1 : 0;
     const supplies = (y1 ? p.suppliesY1 : 0) + p.supplies;
@@ -219,7 +268,6 @@ function updateAssumptionNote(breed, tier){
 function drawChart(totals){
   const c = document.getElementById('chart');
   const ctx = c.getContext('2d');
-  // crisp canvas sizing
   const cssW = c.clientWidth, cssH = c.clientHeight;
   const scale = window.devicePixelRatio || 1;
   c.width = Math.round(cssW * scale);
