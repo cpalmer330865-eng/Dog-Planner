@@ -110,6 +110,18 @@
     <p id="emote" style="margin-top:8px"></p>
     <p class="muted" id="assumptionNote"></p>
 
+    <!-- RESCUE LINKS (moved ABOVE affiliates) -->
+    <div style="background:#fdf6f6; border:1px solid #f5c2c2; border-radius:12px; padding:12px; margin:16px 0;">
+      <h4 style="margin:4px 0 8px">Thinking of adopting?</h4>
+      <p class="muted" style="margin:0 0 8px">Every year thousands of dogs in the UK need a loving home.</p>
+      <ul style="margin:0 0 8px 18px">
+        <li><a href="https://www.rspca.org.uk/findapet" target="_blank" rel="noopener">RSPCA — Find a Pet</a></li>
+        <li><a href="https://www.dogsblog.com/" target="_blank" rel="noopener">DogsBlog.com — UK shelters</a></li>
+        <li><a href="https://www.battersea.org.uk/dogs" target="_blank" rel="noopener">Battersea Dogs & Cats Home</a></li>
+      </ul>
+      <p class="muted" style="margin:0">Change a dog's life.</p>
+    </div>
+
     <p class="muted" id="disclosure">
       Some links are affiliate links. If you buy through them, we may earn a commission at no extra cost to you.
     </p>
@@ -154,34 +166,13 @@
       <div class="aff">
         <div>Premium Leads & Collars</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=leather+dog+lead+premium+i+pets&tag=cp33086503-21">
+           href="https://www.amazon.co.uk/s?k=leather+dog+lead+premium&i=pets&tag=cp33086503-21">
            Find Premium Leads →
         </a>
       </div>
     </div>
 
     <button id="pdfBtn" style="margin-top:12px">Download personalised PDF</button>
-  </div>
-
-  <!-- Rescue links (non-affiliate) -->
-  <div class="card" style="background:#fdf6f6; border:1px solid #f5c2c2;">
-    <h3 style="margin-top:0;">Thinking of adopting?</h3>
-    <p class="muted">Every year thousands of dogs in the UK need a loving home.</p>
-    <ul>
-      <li><a href="https://www.rspca.org.uk/findapet" target="_blank" rel="noopener">RSPCA — Find a Pet</a></li>
-      <li><a href="https://www.dogsblog.com/" target="_blank" rel="noopener">DogsBlog.com — UK shelters</a></li>
-      <li><a href="https://www.battersea.org.uk/dogs" target="_blank" rel="noopener">Battersea Dogs & Cats Home</a></li>
-    </ul>
-    <p class="muted">Change a dog's life.</p>
-  </div>
-
-  <div class="card">
-    <h4>Notes & next steps</h4>
-    <ul>
-      <li>We show first-year setup spikes, steady middle years, and higher senior-year vet costs.</li>
-      <li>Food link adapts by breed size + lifestyle; insurance coming soon.</li>
-      <li>Maddie featured 🐾 + high-end extras + rescue links added.</li>
-    </ul>
   </div>
 </div>
 
@@ -223,7 +214,7 @@ function model(breed, tier, insurance, region){
   return rows;
 }
 
-const $ = sel => document.querySelector(sel));
+const $ = sel => document.querySelector(sel);  // fixed
 const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regionEl = $('#region');
 
 // ===== Dynamic Amazon search link (breed-size + tier) =====
