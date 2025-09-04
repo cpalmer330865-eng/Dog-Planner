@@ -62,14 +62,7 @@
     <div class="grid">
       <div>
         <label>Breed</label>
-        <select id="breed">
-          <option>German Shepherd</option>
-          <option>Labrador Retriever</option>
-          <option>Golden Retriever</option>
-          <option>French Bulldog</option>
-          <option>Dachshund</option>
-          <option>Cockapoo</option>
-        </select>
+        <select id="breed"></select>
       </div>
       <div>
         <label>Lifestyle</label>
@@ -110,7 +103,7 @@
     <p id="emote" style="margin-top:8px"></p>
     <p class="muted" id="assumptionNote"></p>
 
-    <!-- RESCUE LINKS (moved ABOVE affiliates) -->
+    <!-- RESCUE LINKS (above affiliates) -->
     <div style="background:#fdf6f6; border:1px solid #f5c2c2; border-radius:12px; padding:12px; margin:16px 0;">
       <h4 style="margin:4px 0 8px">Thinking of adopting?</h4>
       <p class="muted" style="margin:0 0 8px">Every year thousands of dogs in the UK need a loving home.</p>
@@ -139,69 +132,49 @@
       </div>
     </div>
 
-    <!-- High-end extras (Amazon-tagged) -->
+    <!-- Recommended extras -->
     <h4 style="margin:16px 0 6px">Recommended extras</h4>
-<div class="extras-grid">
-  <div class="aff">
-    <div>Best Dog Beds</div>
-    <a class="button" target="_blank" rel="sponsored nofollow"
-       href="https://www.amazon.co.uk/s?k=best+orthopedic+dog+bed&i=pets&tag=cp33086503-21">
-       Shop Beds →
-    </a>
-  </div>
-  <div class="aff">
-    <div>Best Outdoor Kennels</div>
-    <a class="button" target="_blank" rel="sponsored nofollow"
-       href="https://www.amazon.co.uk/s?k=best+outdoor+dog+kennel&i=pets&tag=cp33086503-21">
-       View Kennels →
-    </a>
-  </div>
-  <div class="aff">
-    <div>Best Automatic Feeders</div>
-    <a class="button" target="_blank" rel="sponsored nofollow"
-       href="https://www.amazon.co.uk/s?k=best+automatic+dog+feeder&i=pets&tag=cp33086503-21">
-       Explore Feeders →
-    </a>
-  </div>
-  <div class="aff">
-    <div>Best Leads & Collars</div>
-    <a class="button" target="_blank" rel="sponsored nofollow"
-       href="https://www.amazon.co.uk/s?k=best+dog+lead+collar&i=pets&tag=cp33086503-21">
-       Find Leads →
-    </a>
-  </div>
-</div>
+    <div class="extras-grid">
       <div class="aff">
-        <div>Luxury Orthopedic Beds</div>
+        <div>Best Dog Beds</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=luxury+orthopedic+dog+bed&i=pets&tag=cp33086503-21">
-           Shop Luxury Beds →
+           href="https://www.amazon.co.uk/s?k=best+orthopedic+dog+bed&i=pets&tag=cp33086503-21">
+           Shop Beds →
         </a>
       </div>
       <div class="aff">
-        <div>Premium Outdoor Kennels</div>
+        <div>Best Outdoor Kennels</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=premium+outdoor+dog+kennel+weatherproof&i=pets&tag=cp33086503-21">
-           Explore Kennels →
+           href="https://www.amazon.co.uk/s?k=best+outdoor+dog+kennel&i=pets&tag=cp33086503-21">
+           View Kennels →
         </a>
       </div>
       <div class="aff">
-        <div>Top-End Automatic Feeders</div>
+        <div>Best Automatic Feeders</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=automatic+dog+feeder+wifi+stainless+steel&i=pets&tag=cp33086503-21">
-           View Smart Feeders →
+           href="https://www.amazon.co.uk/s?k=best+automatic+dog+feeder&i=pets&tag=cp33086503-21">
+           Explore Feeders →
         </a>
       </div>
       <div class="aff">
-        <div>Premium Leads & Collars</div>
+        <div>Best Leads & Collars</div>
         <a class="button" target="_blank" rel="sponsored nofollow"
-           href="https://www.amazon.co.uk/s?k=leather+dog+lead+premium&i=pets&tag=cp33086503-21">
-           Find Premium Leads →
+           href="https://www.amazon.co.uk/s?k=best+dog+lead+collar&i=pets&tag=cp33086503-21">
+           Find Leads →
         </a>
       </div>
     </div>
 
     <button id="pdfBtn" style="margin-top:12px">Download personalised PDF</button>
+  </div>
+
+  <div class="card">
+    <h4>Notes & next steps</h4>
+    <ul>
+      <li>We show first-year setup spikes, steady middle years, and higher senior-year vet costs.</li>
+      <li>Food link adapts by breed size + lifestyle; insurance coming soon.</li>
+      <li>Maddie featured 🐾, expanded breed list, rescue links above affiliates.</li>
+    </ul>
   </div>
 </div>
 
@@ -209,31 +182,51 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
-// ====== Assumptions ======
-const BREED_TABLE = {
-  "German Shepherd":   { years:14, baseFood:1000, premFood:1200, routineVet:800, seniorExtra:1200, groom:300, trainY1:1000, suppliesY1:400, supplies:200, purchaseY1:2000, insureStd:650, insurePrem:900 },
-  "Labrador Retriever":{ years:13, baseFood:950,  premFood:1100, routineVet:700, seniorExtra:900,  groom:280, trainY1:800,  suppliesY1:350, supplies:200, purchaseY1:1500, insureStd:600, insurePrem:850 },
-  "Golden Retriever":  { years:12, baseFood:950,  premFood:1150, routineVet:800, seniorExtra:1000, groom:320, trainY1:900,  suppliesY1:350, supplies:200, purchaseY1:1800, insureStd:650, insurePrem:900 },
-  "French Bulldog":    { years:11, baseFood:650,  premFood:750,  routineVet:900, seniorExtra:1000, groom:250, trainY1:400,  suppliesY1:300, supplies:150, purchaseY1:2000, insureStd:800, insurePrem:1000 },
-  "Dachshund":         { years:14, baseFood:500,  premFood:600,  routineVet:700, seniorExtra:800,  groom:220, trainY1:500,  suppliesY1:300, supplies:150, purchaseY1:1200, insureStd:500, insurePrem:700 },
-  "Cockapoo":          { years:13, baseFood:700,  premFood:850,  routineVet:700, seniorExtra:900,  groom:420, trainY1:600,  suppliesY1:320, supplies:180, purchaseY1:1600, insureStd:550, insurePrem:750 }
+// ====== Breed "database" (inline; add/edit freely) ======
+const DOGS = {
+  "German Shepherd":   { size:"large",  years:14, baseFood:1000, premFood:1200, routineVet:800, seniorExtra:1200, groom:300, trainY1:1000, suppliesY1:400, supplies:200, purchaseY1:2000, insureStd:650, insurePrem:900 },
+  "Labrador Retriever":{ size:"large",  years:13, baseFood:950,  premFood:1100, routineVet:700, seniorExtra:900,  groom:280, trainY1:800,  suppliesY1:350, supplies:200, purchaseY1:1500, insureStd:600, insurePrem:850 },
+  "Golden Retriever":  { size:"large",  years:12, baseFood:950,  premFood:1150, routineVet:800, seniorExtra:1000, groom:320, trainY1:900,  suppliesY1:350, supplies:200, purchaseY1:1800, insureStd:650, insurePrem:900 },
+  "French Bulldog":    { size:"small",  years:11, baseFood:650,  premFood:750,  routineVet:900, seniorExtra:1000, groom:250, trainY1:400,  suppliesY1:300, supplies:150, purchaseY1:2000, insureStd:800, insurePrem:1000 },
+  "Dachshund":         { size:"small",  years:14, baseFood:500,  premFood:600,  routineVet:700, seniorExtra:800,  groom:220, trainY1:500,  suppliesY1:300, supplies:150, purchaseY1:1200, insureStd:500, insurePrem:700 },
+  "Cockapoo":          { size:"medium", years:13, baseFood:700,  premFood:850,  routineVet:700, seniorExtra:900,  groom:420, trainY1:600,  suppliesY1:320, supplies:180, purchaseY1:1600, insureStd:550, insurePrem:750 },
+  "Cocker Spaniel":    { size:"medium", years:13, baseFood:750,  premFood:900,  routineVet:700, seniorExtra:900,  groom:380, trainY1:700,  suppliesY1:320, supplies:180, purchaseY1:1400, insureStd:580, insurePrem:780 },
+  "Border Collie":     { size:"medium", years:14, baseFood:800,  premFood:950,  routineVet:700, seniorExtra:900,  groom:260, trainY1:800,  suppliesY1:320, supplies:180, purchaseY1:1300, insureStd:560, insurePrem:760 },
+  "Staffordshire Bull Terrier": { size:"medium", years:12, baseFood:750, premFood:900, routineVet:750, seniorExtra:900, groom:250, trainY1:600, suppliesY1:300, supplies:170, purchaseY1:1200, insureStd:600, insurePrem:800 },
+  "Cavalier King Charles Spaniel": { size:"small", years:12, baseFood:600, premFood:720, routineVet:800, seniorExtra:900, groom:300, trainY1:600, suppliesY1:300, supplies:150, purchaseY1:1400, insureStd:650, insurePrem:850 },
+  "Shih Tzu":          { size:"small",  years:14, baseFood:550,  premFood:660,  routineVet:700, seniorExtra:800,  groom:420, trainY1:500,  suppliesY1:280, supplies:150, purchaseY1:1100, insureStd:520, insurePrem:700 },
+  "Pug":               { size:"small",  years:12, baseFood:600,  premFood:720,  routineVet:800, seniorExtra:900,  groom:240, trainY1:500,  suppliesY1:280, supplies:150, purchaseY1:1200, insureStd:650, insurePrem:850 },
+  "Beagle":            { size:"medium", years:13, baseFood:750,  premFood:900,  routineVet:700, seniorExtra:900,  groom:260, trainY1:700,  suppliesY1:320, supplies:180, purchaseY1:1300, insureStd:560, insurePrem:760 },
+  "Boxer":             { size:"large",  years:11, baseFood:900,  premFood:1080, routineVet:800, seniorExtra:1100, groom:280, trainY1:800,  suppliesY1:350, supplies:200, purchaseY1:1700, insureStd:700, insurePrem:950 },
+  "Rottweiler":        { size:"large",  years:10, baseFood:1100, premFood:1300, routineVet:900, seniorExtra:1200, groom:300, trainY1:900,  suppliesY1:380, supplies:220, purchaseY1:2000, insureStd:800, insurePrem:1100 },
+  "Poodle (Standard)": { size:"large",  years:13, baseFood:900,  premFood:1080, routineVet:800, seniorExtra:1000, groom:520, trainY1:800,  suppliesY1:350, supplies:200, purchaseY1:1800, insureStd:620, insurePrem:850 },
+  "Poodle (Miniature)":{ size:"small",  years:14, baseFood:600,  premFood:720,  routineVet:700, seniorExtra:800,  groom:480, trainY1:600,  suppliesY1:300, supplies:160, purchaseY1:1400, insureStd:520, insurePrem:700 },
+  "Yorkshire Terrier": { size:"small",  years:14, baseFood:520,  premFood:640,  routineVet:700, seniorExtra:800,  groom:420, trainY1:500,  suppliesY1:260, supplies:140, purchaseY1:1100, insureStd:500, insurePrem:680 },
+  "Chihuahua":         { size:"small",  years:14, baseFood:480,  premFood:600,  routineVet:650, seniorExtra:750,  groom:220, trainY1:500,  suppliesY1:240, supplies:130, purchaseY1:1000, insureStd:480, insurePrem:650 },
+  "English Springer Spaniel": { size:"medium", years:13, baseFood:800, premFood:960, routineVet:700, seniorExtra:900, groom:360, trainY1:700, suppliesY1:320, supplies:180, purchaseY1:1400, insureStd:580, insurePrem:780 },
+  "Labradoodle":       { size:"large",  years:13, baseFood:900,  premFood:1080, routineVet:750, seniorExtra:950,  groom:500, trainY1:800,  suppliesY1:340, supplies:190, purchaseY1:1800, insureStd:600, insurePrem:820 },
+  "Cavapoo":           { size:"small",  years:13, baseFood:620,  premFood:740,  routineVet:700, seniorExtra:850,  groom:460, trainY1:650,  suppliesY1:300, supplies:160, purchaseY1:1600, insureStd:520, insurePrem:720 },
+  "Mixed/Rescue (Medium)": { size:"medium", years:13, baseFood:720, premFood:860, routineVet:700, seniorExtra:900, groom:300, trainY1:600, suppliesY1:300, supplies:170, purchaseY1:250, insureStd:550, insurePrem:750 }
 };
+
+// ====== Helpers & model ======
+const $ = sel => document.querySelector(sel);
 
 function fmt(n){ return "£" + Math.round(n).toLocaleString(); }
 
 function model(breed, tier, insurance, region){
-  const p = BREED_TABLE[breed];
+  const p = DOGS[breed];
   const years = p.years;
   const food = (tier === "Premium" ? p.premFood : p.baseFood) * (region.includes("London") ? 1.08 : 1.0);
   const insure = insurance === "Yes" ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0) : 0;
   const groom = p.groom * (tier==="Premium" ? 1.1 : 1.0);
   const routineVet = p.routineVet * (region.includes("London") ? 1.10 : 1.0);
 
-  let rows = [];
+  const rows = [];
   for(let y=1; y<=years; y++){
     const y1 = (y===1);
     let vet = routineVet;
-    if(y>=Math.max(10, years-4)) vet += p.seniorExtra;
+    if(y>=Math.max(10, years-4)) vet += p.seniorExtra; // senior window
     const purchase = y1 ? p.purchaseY1 : 0;
     const training = y1 ? p.trainY1 : 0;
     const supplies = (y1 ? p.suppliesY1 : 0) + p.supplies;
@@ -243,48 +236,48 @@ function model(breed, tier, insurance, region){
   return rows;
 }
 
-const $ = sel => document.querySelector(sel);  // fixed
+// Populate breed <select> from database
 const breedEl = $('#breed'), tierEl = $('#tier'), insEl = $('#insurance'), regionEl = $('#region');
+(function populateBreeds(){
+  const breeds = Object.keys(DOGS);
+  breeds.forEach(name=>{
+    const opt = document.createElement('option');
+    opt.textContent = name;
+    breedEl.appendChild(opt);
+  });
+  // Preselect German Shepherd if present
+  const idx = breeds.indexOf("German Shepherd");
+  if(idx>=0) breedEl.selectedIndex = idx;
+})();
 
-// ===== Dynamic Amazon search link (breed-size + tier) =====
-const BREED_SIZE = {
-  "German Shepherd":"large breed",
-  "Labrador Retriever":"large breed",
-  "Golden Retriever":"large breed",
-  "French Bulldog":"small breed",
-  "Dachshund":"small breed",
-  "Cockapoo":"medium breed"
-};
-
-// ✅ Your Amazon Associates tracking ID
+// ===== Dynamic Amazon search link (uses size) =====
 const AMAZON_TAG = "cp33086503-21";
 const AMAZON_FALLBACK = "https://amzn.to/4oZAwmh";
 
 function amazonFoodSearchUrl(breed, tier){
-  const size = BREED_SIZE[breed] || "dog";
+  const size = DOGS[breed]?.size || "medium";
+  const sizePhrase = size==="large" ? "large breed" : size==="small" ? "small breed" : "medium breed";
   const premium = (tier === "Premium") ? "premium " : "";
-  const bagHint = size.includes("large") ? "12kg" : (size.includes("small") ? "2kg" : "7kg");
-  const query = `${premium}${size} dry dog food ${bagHint}`;
+  const bagHint = size==="large" ? "12kg" : (size==="small" ? "2kg" : "7kg");
+  const query = `${premium}${sizePhrase} dry dog food ${bagHint}`;
   if (!AMAZON_TAG) return AMAZON_FALLBACK;
   return `https://www.amazon.co.uk/s?k=${encodeURIComponent(query)}&i=pets&tag=${AMAZON_TAG}`;
 }
 
 function updateFoodLink(){
-  const breed = breedEl.value;
-  const tier  = tierEl.value;
-  $('#foodLink').href = amazonFoodSearchUrl(breed, tier);
+  $('#foodLink').href = amazonFoodSearchUrl(breedEl.value, tierEl.value);
 }
 
 // ---- Assumption note ----
 function updateAssumptionNote(breed, tier){
-  const p = BREED_TABLE[breed];
+  const p = DOGS[breed];
   const annualFood = (tier === "Premium") ? p.premFood : p.baseFood;
   const monthlyFood = Math.round(annualFood / 12);
   document.getElementById('assumptionNote').textContent =
     `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} for ${breed}).`;
 }
 
-// -------- Simple chart with axes & ticks --------
+// -------- Chart --------
 function drawChart(totals){
   const c = document.getElementById('chart');
   const ctx = c.getContext('2d');
@@ -305,45 +298,30 @@ function drawChart(totals){
   const Y = v => (padT + plotH) - (plotH) * ((v - min) / (max - min || 1));
 
   // axes
-  ctx.strokeStyle = "#444";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#444"; ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padL, padT);
   ctx.lineTo(padL, padT + plotH);
   ctx.lineTo(padL + plotW, padT + plotH);
   ctx.stroke();
 
-  // labels + grid
-  ctx.fillStyle = "#444";
-  ctx.font = "12px Inter, system-ui, sans-serif";
+  // grid + y labels
+  ctx.fillStyle = "#444"; ctx.font = "12px Inter, system-ui, sans-serif";
   const steps = 5;
   for(let i=0;i<=steps;i++){
     const val = min + (max-min) * (i/steps);
     const y = Y(val);
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
     ctx.fillText("£"+Math.round(val/100)*100, padL - 6, y);
-    ctx.strokeStyle="#e9e9f2";
-    ctx.lineWidth=1;
-    ctx.beginPath();
-    ctx.moveTo(padL, y);
-    ctx.lineTo(padL + plotW, y);
-    ctx.stroke();
+    ctx.strokeStyle="#e9e9f2"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
   }
-
-  // x labels (every other year)
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  totals.forEach((_,i)=>{
-    const x=X(i), y=padT+plotH;
-    if(i%2===0 || i===totals.length-1){
-      ctx.fillText("Yr "+(i+1), x, y+6);
-    }
-  });
+  // x labels
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  totals.forEach((_,i)=>{ if(i%2===0 || i===totals.length-1){ ctx.fillText("Yr "+(i+1), X(i), padT+plotH+6); } });
 
   // line
-  ctx.strokeStyle="#4f46e5";
-  ctx.lineWidth=2;
+  ctx.strokeStyle="#4f46e5"; ctx.lineWidth=2;
   ctx.beginPath();
   totals.forEach((v,i)=>{ const x=X(i), y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
   ctx.stroke();
@@ -362,9 +340,8 @@ function recalc(){
 
   drawChart(totals);
 
-  $('#emote').textContent = (rows.length>=12)
-    ? "Expect a larger spike in year one (setup & training) and higher costs in senior years (vet care). Planning monthly helps avoid surprises."
-    : "Spending peaks in year one and rises again in later years. Planning monthly helps avoid surprises.";
+  $('#emote').textContent =
+    "Expect a larger spike in year one (setup & training) and higher costs in senior years (vet care). Planning monthly helps avoid surprises.";
 
   updateFoodLink();
   updateAssumptionNote(breedEl.value, tierEl.value);
