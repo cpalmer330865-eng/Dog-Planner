@@ -106,13 +106,14 @@
     </p>
     <button id="calc" style="margin-top:12px">Calculate</button>
   </div>
+
   <!-- Grandad with his dogs -->
   <div class="card" style="padding:0; overflow:hidden; border-radius:14px; text-align:center; margin-top:16px;">
-<img src="./14dae98f-b5df-48e3-b22c-4a6e997d92ec.jpeg" alt="Grandad with his dogs"
-     style="width:100%; height:auto; display:block;">
-    <div style="padding:10px" class="muted">
-    </div>
+    <img src="./14dae98f-b5df-48e3-b22c-4a6e997d92ec.jpeg" alt="Grandad with his dogs"
+         style="width:100%; height:auto; display:block;">
+    <div style="padding:10px" class="muted"></div>
   </div>
+
   <div class="card">
     <h3>Your Results</h3>
     <div class="stats">
@@ -215,9 +216,10 @@
       <li>Food link adapts by breed size or entered weight + lifestyle; insurance coming soon.</li>
     </ul>
   </div>
+
   <footer style="margin:24px 0 12px; text-align:center; font-size:14px; color:#555;">
-  <p>&copy; 2025 Dog Life Cost Planner • <a href="./privacy.html">Privacy & Cookies</a></p>
-</footer>
+    <p>&copy; 2025 Dog Life Cost Planner • <a href="./privacy.html">Privacy & Cookies</a></p>
+  </footer>
 </div>
 
 <!-- jsPDF for client-side PDF generation -->
@@ -248,7 +250,14 @@ const DOGS = {
   "English Springer Spaniel": { size:"medium", years:13, baseFood:800, premFood:960, routineVet:700, seniorExtra:900, groom:360, trainY1:700, suppliesY1:320, supplies:180, purchaseY1:1400, insureStd:580, insurePrem:780 },
   "Labradoodle":       { size:"large",  years:13, baseFood:900,  premFood:1080, routineVet:750, seniorExtra:950,  groom:500, trainY1:800,  suppliesY1:340, supplies:190, purchaseY1:1800, insureStd:600, insurePrem:820 },
   "Cavapoo":           { size:"small",  years:13, baseFood:620,  premFood:740,  routineVet:700, seniorExtra:850,  groom:460, trainY1:650,  suppliesY1:300, supplies:160, purchaseY1:1600, insureStd:520, insurePrem:720 },
+  "American Bully (Pocket)": { size:"medium", years:12, baseFood:924, premFood:1063, routineVet:750, seniorExtra:900, groom:250, trainY1:700, suppliesY1:320, supplies:180, purchaseY1:1500, insureStd:791, insurePrem:950 },
   "Mixed/Rescue (Medium)": { size:"medium", years:13, baseFood:720, premFood:860, routineVet:700, seniorExtra:900, groom:300, trainY1:600, suppliesY1:300, supplies:170, purchaseY1:250, insureStd:550, insurePrem:750 }
+};
+
+// ===== Calibration derived from real owner data (Marshall: 26kg; £65.95 ins, £77 food, £30 treats, £20 vetplan)
+const CAL = {
+  insurancePerKgPerMonth: 65.95 / 26, // ≈ £2.53 / kg / month
+  extrasPerKgPerMonth: (30 + 20) / 26 // treats + wormers ≈ £1.92 / kg / month
 };
 
 // ====== Helpers & model ======
@@ -263,7 +272,7 @@ function annualFoodFromWeight(weightKg, tier){
   let monthly;
   if (w < 10) monthly = 40;
   else if (w < 25) monthly = 60;
-  else if (w < 40) monthly = 80;
+  else if (w < 40) monthly = 80;   // Marshall’s £77 fits here nicely
   else monthly = 100;
   if (tier === "Premium") monthly *= 1.15;
   return monthly * 12;
@@ -276,44 +285,47 @@ function sizeFromWeight(weightKg){
   if (w < 10) return "small";
   if (w < 25) return "medium";
   if (w < 40) return "large";
-  return "large"; // treat >40kg as large for query
+  return "large";
 }
 
 function model(breed, tier, insurance, region, currentAgeYears, weightKg){
   const p = DOGS[breed];
   const years = p.years;
-  const startAge = Math.max(0, Math.min(years, Number(currentAgeYears)||0)); // clamp
+  const startAge = Math.max(0, Math.min(years, Number(currentAgeYears)||0));
   const remainingYears = Math.max(0, years - startAge);
 
-  // Food: weight override if provided, else breed defaults
+  // FOOD: weight-based if provided; else breed defaults
   const weightFood = annualFoodFromWeight(weightKg, tier);
   const baseFoodAnnual = weightFood ?? (tier === "Premium" ? p.premFood : p.baseFood);
-
   const regionalFood = baseFoodAnnual * (region.includes("London") ? 1.08 : 1.0);
-  const insure = insurance === "Yes"
-      ? (tier==="Premium" ? p.insurePrem : p.insureStd) * (region.includes("London") ? 1.10 : 1.0)
-      : 0;
+
+  // INSURANCE: table default, but if weight given ensure it's not below simple per-kg baseline from calibration
+  const regionInsMult = region.includes("London") ? 1.10 : 1.0;
+  const tableInsAnnual = (tier==="Premium" ? p.insurePrem : p.insureStd) * regionInsMult;
+  const weightFloorAnnual = (Number(weightKg)>0) ? (CAL.insurancePerKgPerMonth * Number(weightKg) * 12 * regionInsMult) : 0;
+  const insure = (insurance === "Yes") ? Math.max(tableInsAnnual, weightFloorAnnual) : 0;
+
+  // Grooming & routine vet (with region)
   const groom = p.groom * (tier==="Premium" ? 1.1 : 1.0);
   const routineVet = p.routineVet * (region.includes("London") ? 1.10 : 1.0);
 
+  // EXTRAS by weight (treats + wormers) blended in for all breeds if weight known
+  const extrasAnnual = (Number(weightKg)>0) ? (CAL.extrasPerKgPerMonth * Number(weightKg) * 12) : 0;
+
   const rows = [];
-  // Loop actual dog age from next birthday onward (remaining horizon)
   for(let i=1; i<=remainingYears; i++){
-    const ageThisYear = startAge + i; // 1..remaining mapped to real age
+    const ageThisYear = startAge + i;
     const isFirstYearOutput = (i===1);
 
-    // Vet costs with senior bump near the end
     let vet = routineVet;
     if(ageThisYear >= Math.max(10, years-4)) vet += p.seniorExtra;
 
-    // One-off costs only if starting from puppy (age 0) and it's the first output year
     const purchase = (startAge===0 && isFirstYearOutput) ? p.purchaseY1 : 0;
     const training = (startAge===0 && isFirstYearOutput) ? p.trainY1 : 0;
 
-    // Supplies: Y1 spike only if starting from puppy; plus annual supplies each year
-    const supplies = ((startAge===0 && isFirstYearOutput) ? p.suppliesY1 : 0) + p.supplies;
+    // Annual supplies (existing) + extras from calibration (weight-based)
+    const supplies = ((startAge===0 && isFirstYearOutput) ? p.suppliesY1 : 0) + p.supplies + extrasAnnual;
 
-    // Annual food already adjusted
     const total = purchase + training + supplies + regionalFood + insure + vet + groom;
     rows.push({year:i, age:ageThisYear, total});
   }
@@ -372,8 +384,14 @@ function updateAssumptionNote(breed, tier, weightKg){
   const annualFood = weightFood ?? (tier === "Premium" ? p.premFood : p.baseFood);
   const monthlyFood = Math.round(annualFood / 12);
   const basis = weightFood ? `${weightKg}kg` : breed;
+
+  // If weight is entered, show that extras + insurance are influenced by weight too
+  const extraHint = (Number(weightKg)>0)
+    ? " Includes typical extras & insurance scaled by weight."
+    : "";
+
   document.getElementById('assumptionNote').textContent =
-    `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} — based on ${basis}).`;
+    `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} — based on ${basis}).${extraHint}`;
 }
 
 // -------- Chart --------
@@ -492,7 +510,7 @@ document.getElementById('pdfBtn').addEventListener('click', async () => {
     'Notes:',
     '— Year 1 shows the next 12 months from current age.',
     '— Senior years include higher vet care.',
-    '— Food cost adjusts by weight if provided.'
+    '— Food & some extras scale by weight when entered.'
   ];
   lines.forEach(l => { doc.text(l, 40, y); y += 18; });
 
