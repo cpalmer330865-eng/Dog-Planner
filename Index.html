@@ -514,7 +514,6 @@ function updateAssumptionNote(breed, tier, weightKg){
     `Food assumption: about £${monthlyFood}/month (${tier.toLowerCase()} — based on ${basis}).${extraHint}${econHint}`;
 }
 
-// -------- Chart --------
 function drawChart(totals){
   const c = document.getElementById('chart');
   const ctx = c.getContext('2d');
@@ -526,7 +525,7 @@ function drawChart(totals){
   ctx.clearRect(0,0,c.width,c.height);
   ctx.scale(scale, scale);
 
-  const padL = 48, padB = 34, padT = 16, padR = 12;
+  const padL = 48, padB = 40, padT = 16, padR = 12; // a little more bottom padding for the axis title
   const max = Math.max(...totals, 1);
   const min = 0;
   const plotW = cssW - padL - padR;
@@ -542,7 +541,7 @@ function drawChart(totals){
   ctx.lineTo(padL + plotW, padT + plotH);
   ctx.stroke();
 
-  // grid + y labels
+  // grid + y labels (£)
   ctx.fillStyle = "#444"; ctx.font = "12px Inter, system-ui, sans-serif";
   const steps = 5;
   for(let i=0;i<=steps;i++){
@@ -553,9 +552,20 @@ function drawChart(totals){
     ctx.strokeStyle="#e9e9f2"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
   }
-  // x labels = Remaining Yr N
+
+  // x tick labels: 1, 2, 3, ...
   ctx.textAlign = "center"; ctx.textBaseline = "top";
-  totals.forEach((_,i)=>{ if(i%2===0 || i===totals.length-1){ ctx.fillText("Rem Yr "+(i+1), X(i), padT+plotH+6); } });
+  for(let i=0;i<totals.length;i++){
+    const x = X(i);
+    if (i===0 || i===totals.length-1 || i%2===0) { // show every other to avoid crowding
+      ctx.fillText(String(i+1), x, padT+plotH+6);
+    }
+  }
+
+  // x-axis title
+  ctx.font = "13px Inter, system-ui, sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText("Years", padL + plotW/2, padT + plotH + 22);
 
   // line
   ctx.strokeStyle="#4f46e5"; ctx.lineWidth=2;
