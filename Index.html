@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+  <!-- Google AdSense global -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5671620912564469"
      crossorigin="anonymous"></script>
 <head>
@@ -105,6 +106,9 @@
       Broad beta model. We’ll refine with UK sources (PDSA, RSPCA, PFMA, insurers) and real owner inputs.
     </p>
     <button id="calc" style="margin-top:12px">Calculate</button>
+    <p class="muted" style="margin:6px 0 0">
+      Got real numbers? <a href="#" id="addActuals">Add my actuals</a> (anonymous, saved to your device only)
+    </p>
   </div>
 
   <!-- Grandad with his dogs -->
@@ -134,7 +138,7 @@
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
       </script>
     </div>
 
@@ -217,6 +221,36 @@
     </ul>
   </div>
 
+  <!<!-- Data sources (UK) — linked version -->
+<div class="card" style="margin-top:12px">
+  <h4>Data sources (UK)</h4>
+  <ul class="muted" style="margin:8px 0 0; line-height:1.5">
+    <li>
+      <a href="https://www.pdsa.org.uk/pet-help-and-advice/looking-after-your-pet/all-pets/how-much-does-a-dog-cost"
+         target="_blank" rel="noopener">PDSA — typical monthly costs by size</a>
+    </li>
+    <li>
+      <a href="https://www.abi.org.uk/data-and-resources/insurer-data/pet-insurance/"
+         target="_blank" rel="noopener">Association of British Insurers — pet insurance stats</a>
+    </li>
+    <li>
+      <a href="https://www.rvc.ac.uk/vetcompass/research/procedures-and-results"
+         target="_blank" rel="noopener">RVC VetCompass — UK dog longevity & health studies</a>
+    </li>
+    <li>
+      <a href="https://www.moneyhelper.org.uk/en/family-and-care/pets/how-much-does-it-cost-to-own-a-pet"
+         target="_blank" rel="noopener">MoneyHelper — lifetime pet cost context</a>
+    </li>
+    <li>
+      <a href="https://www.rspca.org.uk/adviceandwelfare/pets/dogs/costs"
+         target="_blank" rel="noopener">RSPCA — cost guidance & calculator</a>
+    </li>
+  </ul>
+  <p class="muted" style="margin:8px 0 0; font-size:13px">
+    We blend these references with user-submitted figures (when provided) and will keep refining.
+  </p>
+</div>
+
   <footer style="margin:24px 0 12px; text-align:center; font-size:14px; color:#555;">
     <p>&copy; 2025 Dog Life Cost Planner • <a href="./privacy.html">Privacy & Cookies</a></p>
   </footer>
@@ -260,9 +294,29 @@ const CAL = {
   extrasPerKgPerMonth: (30 + 20) / 26 // treats + wormers ≈ £1.92 / kg / month
 };
 
+// ====== Crowd input (localStorage) ======
+const CROWD_KEY = "dogplanner_crowd_inputs_v1";
+// structure: { "<breed>": [{food:annual, insure:annual, weight:kg, ts:...}, ...] }
+function saveCrowdSample(breed, annualFood, annualInsure, weightKg){
+  try {
+    const data = JSON.parse(localStorage.getItem(CROWD_KEY) || "{}");
+    data[breed] = data[breed] || [];
+    data[breed].push({food:annualFood, insure:annualInsure, weight:weightKg, ts: Date.now()});
+    localStorage.setItem(CROWD_KEY, JSON.stringify(data));
+  } catch(e){}
+}
+function getCrowdAverages(breed){
+  try {
+    const data = JSON.parse(localStorage.getItem(CROWD_KEY) || "{}");
+    const arr = (data[breed]||[]).slice(-50);
+    if(!arr.length) return null;
+    const avg = arr.reduce((a,d)=>({food:a.food+d.food, insure:a.insure+d.insure, n:a.n+1}), {food:0, insure:0, n:0});
+    return { food: avg.food/avg.n, insure: avg.insure/avg.n, n: avg.n };
+  } catch(e){ return null; }
+}
+
 // ====== Helpers & model ======
 const $ = sel => document.querySelector(sel);
-
 function fmt(n){ return "£" + Math.round(n).toLocaleString(); }
 
 // Weight → annual food (£/yr) for Standard; Premium adds ~15%
@@ -296,12 +350,23 @@ function model(breed, tier, insurance, region, currentAgeYears, weightKg){
 
   // FOOD: weight-based if provided; else breed defaults
   const weightFood = annualFoodFromWeight(weightKg, tier);
-  const baseFoodAnnual = weightFood ?? (tier === "Premium" ? p.premFood : p.baseFood);
+  let baseFoodAnnual = weightFood ?? (tier === "Premium" ? p.premFood : p.baseFood);
+
+  // INSURANCE base (before region) for blending
+  let insureBase = (tier==="Premium" ? p.insurePrem : p.insureStd);
+
+  // Optional crowd blend (30%) if available
+  const crowd = getCrowdAverages(breed);
+  if (crowd) {
+    baseFoodAnnual = 0.7*baseFoodAnnual + 0.3*crowd.food;
+    insureBase     = 0.7*insureBase     + 0.3*crowd.insure;
+  }
+
   const regionalFood = baseFoodAnnual * (region.includes("London") ? 1.08 : 1.0);
 
-  // INSURANCE: table default, but if weight given ensure it's not below simple per-kg baseline from calibration
+  // INSURANCE: table (blended) vs weight-derived floor
   const regionInsMult = region.includes("London") ? 1.10 : 1.0;
-  const tableInsAnnual = (tier==="Premium" ? p.insurePrem : p.insureStd) * regionInsMult;
+  const tableInsAnnual = insureBase * regionInsMult;
   const weightFloorAnnual = (Number(weightKg)>0) ? (CAL.insurancePerKgPerMonth * Number(weightKg) * 12 * regionInsMult) : 0;
   const insure = (insurance === "Yes") ? Math.max(tableInsAnnual, weightFloorAnnual) : 0;
 
@@ -323,7 +388,6 @@ function model(breed, tier, insurance, region, currentAgeYears, weightKg){
     const purchase = (startAge===0 && isFirstYearOutput) ? p.purchaseY1 : 0;
     const training = (startAge===0 && isFirstYearOutput) ? p.trainY1 : 0;
 
-    // Annual supplies (existing) + extras from calibration (weight-based)
     const supplies = ((startAge===0 && isFirstYearOutput) ? p.suppliesY1 : 0) + p.supplies + extrasAnnual;
 
     const total = purchase + training + supplies + regionalFood + insure + vet + groom;
@@ -385,7 +449,6 @@ function updateAssumptionNote(breed, tier, weightKg){
   const monthlyFood = Math.round(annualFood / 12);
   const basis = weightFood ? `${weightKg}kg` : breed;
 
-  // If weight is entered, show that extras + insurance are influenced by weight too
   const extraHint = (Number(weightKg)>0)
     ? " Includes typical extras & insurance scaled by weight."
     : "";
@@ -524,6 +587,22 @@ document.getElementById('pdfBtn').addEventListener('click', async () => {
   doc.text('Some links may be affiliate links. We may earn a commission at no extra cost to you.', 40, 810);
 
   doc.save(`DogPlanner_${breed.replace(/\s+/g,'')}.pdf`);
+});
+
+// ====== Handle "Add my actuals" (crowd input) ======
+document.getElementById('addActuals').addEventListener('click', (e)=>{
+  e.preventDefault();
+  const b = document.getElementById('breed').value;
+  const mFood = prompt("What's your typical monthly food cost (£/month)?", "");
+  const mIns  = prompt("What's your monthly insurance (£/month)?", "");
+  const kg    = prompt("Dog’s weight in kg (optional):", "");
+  const annualFood = Number(mFood||0)*12, annualIns = Number(mIns||0)*12, w = Number(kg||0)||null;
+  if ((annualFood>0 || annualIns>0)) {
+    saveCrowdSample(b, annualFood||0, annualIns||0, w);
+    alert("Thanks! Your figures will help tune estimates on this device.");
+    // Recalculate to see the blended effect right away:
+    recalc();
+  }
 });
 </script>
 </body>
