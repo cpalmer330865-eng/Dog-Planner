@@ -1,14 +1,27 @@
 <!doctype html>
 <html lang="en">
-  <!-- Google AdSense global -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5671620912564469"
-     crossorigin="anonymous"></script>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dog Life Cost Planner (Beta)</title>
   <meta name="description" content="Plan the lifetime costs of your dog — monthly cashflow, year-by-year journey, and lifetime total." />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Consent Mode (basic default; wire to your cookie banner later) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      analytics_storage: 'granted'
+    });
+  </script>
+
+  <!-- Google AdSense global (keep exactly one copy per page) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5671620912564469" crossorigin="anonymous"></script>
+
   <style>
     :root{
       --bg:#f7f7fb; --text:#111; --muted:#666; --card:#fff; --line:#e9e9f2;
@@ -138,7 +151,7 @@
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) { /* adblock/library missing */ }
       </script>
     </div>
 
@@ -525,7 +538,7 @@ function drawChart(totals){
   ctx.clearRect(0,0,c.width,c.height);
   ctx.scale(scale, scale);
 
-  const padL = 48, padB = 40, padT = 16, padR = 12; // a little more bottom padding for the axis title
+  const padL = 48, padB = 40, padT = 16, padR = 12;
   const max = Math.max(...totals, 1);
   const min = 0;
   const plotW = cssW - padL - padR;
@@ -557,7 +570,7 @@ function drawChart(totals){
   ctx.textAlign = "center"; ctx.textBaseline = "top";
   for(let i=0;i<totals.length;i++){
     const x = X(i);
-    if (i===0 || i===totals.length-1 || i%2===0) { // show every other to avoid crowding
+    if (i===0 || i===totals.length-1 || i%2===0) {
       ctx.fillText(String(i+1), x, padT+plotH+6);
     }
   }
